@@ -21,7 +21,7 @@ class MQTTManager:
         self.hw_info: dict = get_hardware_info()
 
         self.mqtt_broker: str = config["mqtt_broker"]
-        self.mqtt_broker_port: int = config["mqtt_broker_port"]
+        self.mqtt_broker_port: int = int(config["mqtt_broker_port"])
         self.mqtt_server_topic: str = config["mqtt_server_topic"]
         self.mqtt_client_topic: str = config["mqtt_client_topic"]
         self.mqtt_sub_timeout: int = config["mqtt_sub_timeout_s"]

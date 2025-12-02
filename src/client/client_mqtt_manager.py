@@ -38,7 +38,7 @@ class ClientMQTTManager:
         # MQTT config
         self.type_: str = mqtt_config["type"]
         self.mqtt_broker: str = mqtt_config["mqtt_broker"]
-        self.mqtt_broker_port: int = mqtt_config["mqtt_broker_port"]
+        self.mqtt_broker_port: int = int(mqtt_config["mqtt_broker_port"])
         self.mqtt_heartbeat_timeout_s: float = float(mqtt_config["heartbeat_timeout_s"])
 
         # MQTT topics
