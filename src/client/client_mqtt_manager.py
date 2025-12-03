@@ -92,6 +92,9 @@ class ClientMQTTManager:
         def on_connect(client, userdata, flags, rc):
             self.logger.info("MQTT.client.connect", f"MQTT connection status,{rc}")
             print(f"[FLOW] client_mqtt_manager.py: MQTT Connected with result code {rc}")
+            # Subscribe in on_connect to ensure resubscription on reconnect
+            client.subscribe(self.mqtt_server_topic)
+            print(f"[FLOW] client_mqtt_manager.py: Subscribed to {self.mqtt_server_topic}")
 
         def on_subscribe(client, userdata, mid, granted_qos):
             self.logger.info("MQTT.client.subscribe", f"subscribe tracking variable:,{mid}")
@@ -145,13 +148,17 @@ class ClientMQTTManager:
 
         client.message_callback_add(self.mqtt_server_topic, message_ad_response)
         client.loop_start()
-        client.subscribe(self.mqtt_server_topic)
+        # client.subscribe(self.mqtt_server_topic) # Moved to on_connect
 
-        print(f"[FLOW] client_mqtt_manager.py: Subscribed to {self.mqtt_server_topic}")
+        # print(f"[FLOW] client_mqtt_manager.py: Subscribed to {self.mqtt_server_topic}")
         print("[FLOW] client_mqtt_manager.py: Waiting for server advertisement")
 
-        self.heard_from_server_event.wait()
-        print("[FLOW] client_mqtt_manager.py: Server advertisement received")
+        while not self.heard_from_server_event.is_set():
+            if self.heard_from_server_event.wait(timeout=5):
+                print("[FLOW] client_mqtt_manager.py: Server advertisement received")
+                break
+            else:
+                print("[FLOW] client_mqtt_manager.py: Waiting for server advertisement... (Retrying)")
 
         # Heartbeat loop
         while not event_flag.is_set():

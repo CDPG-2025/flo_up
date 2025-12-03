@@ -1094,7 +1094,7 @@ class FloSessionManager:
                 )
                 await self.send_model(model_id, model_dir, training_clients)
                 print(f"[FLOW] server_session_manager.py: Sending StartTraining requests to {len(training_clients)} clients")
-                asyncio.gather(
+                await asyncio.gather(
                     *(
                         self.async_grpc_train(
                             client_id=client_id,
@@ -1127,7 +1127,7 @@ class FloSessionManager:
                     f"round_no-num_clients-clients,{round_no},{len(validation_clients)},{','.join([str(x) for x in validation_clients])}",
                 )
                 await self.send_model(model_id, model_dir, validation_clients)
-                asyncio.gather(
+                await asyncio.gather(
                     *(
                         self.async_grpc_validation(
                             client_id=client_id,

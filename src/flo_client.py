@@ -101,6 +101,8 @@ def main():
         client_id: str = str(uuid.uuid4())
         client_info = generate_client_info(client_id, temp_dir_path)
         print(f"[FLOW] flo_client.py: Generated new client info for ID: {client_id}")
+    
+    print(f"[FLOW] flo_client.py: MQTT Client ID will be: FedML_client_{client_id}")
 
     # 4. Start Monitor (if requested)
     if args.monitor:

@@ -57,7 +57,8 @@ Flotilla Codebase Workflow Explanation
       3. Training Request:
          - Server sends `StartTraining` command via gRPC to selected clients.
          - Payload includes: Model ID, hyperparameters (batch size, LR), and current global weights (pickled).
-         - This is an asynchronous call (`async_grpc_train`), allowing the server to manage multiple clients concurrently.
+         - This is an asynchronous call (`async_grpc_train`). The server uses `await asyncio.gather(*tasks)` to launch training on all selected clients concurrently and waits for ALL of them to complete (or timeout) before proceeding.
+         - Synchronization is managed via `model_updated_event` and `model_updated_condition` to ensure the main loop pauses until the round is complete.
 
       4. Local Training (Client Side):
          - Client receives `StartTraining` request.
@@ -71,8 +72,8 @@ Flotilla Codebase Workflow Explanation
          - Updates the global model in the server's state.
 
       6. Validation (Optional):
-         - Periodically, the server evaluates the new global model on a held-out server-side validation dataset.
-         - Can also trigger validation on clients via `StartValidation`.
+         - Server-side: Periodically, the server evaluates the new global model on a held-out server-side validation dataset.
+         - Client-side: Can also trigger validation on clients via `StartValidation`. Similar to training, this uses `await asyncio.gather(*tasks)` to ensure all selected validation clients complete their evaluation before the round finishes.
 
       7. Checkpointing:
          - Periodically saves the session state (model, round number, metrics) to disk as a `.tar` file containing pickled state dumps.

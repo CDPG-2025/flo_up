@@ -39,6 +39,13 @@ class MQTTManager:
             self.logger.info(
                 "MQTT.server.connect.request", f"MQTT connection status,{rc}"
             )
+            # Subscribe in on_connect
+            client.subscribe(self.mqtt_client_topic)
+            client.subscribe("heartbeat")
+            self.logger.info(
+                "MQTT.server.subscribed.topics",
+                f"Subscribed to topics:,{self.mqtt_client_topic},heartbeat",
+            )
 
         def on_subscribe(client, userdata, mid, granted_qos):
             self.logger.info(
@@ -153,12 +160,8 @@ class MQTTManager:
 
         client.message_callback_add(self.mqtt_client_topic, message_ad_response)
         client.message_callback_add("heartbeat", message_heartbeat_response)
-        client.subscribe(self.mqtt_client_topic)
-        client.subscribe("heartbeat")
-        self.logger.info(
-            "MQTT.server.subscribed.topics",
-            f"Subscribed to topics:,{self.mqtt_client_topic},heartbeat",
-        )
+        # client.subscribe(self.mqtt_client_topic) # Moved to on_connect
+        # client.subscribe("heartbeat") # Moved to on_connect
 
         client.loop_start()
 
@@ -185,14 +188,13 @@ class MQTTManager:
             f"Payload for client: ,{payload}",
         )
 
-        wait_increment = 0
-        while not self.heard_from_client_event.is_set():
-            if wait_increment == 0:
-                time.sleep(self.mqtt_sub_timeout)
-            else:
-                self.logger.warn("MQTT.server.await", "No clients found")
-                self.heard_from_client_event.wait(self.mqtt_sub_timeout)
-            wait_increment += 1
+        # Force wait for clients to join to avoid race conditions where session starts with only 1 client
+        self.logger.info("MQTT.server.await", f"Waiting {self.mqtt_sub_timeout}s for clients to join...")
+        time.sleep(self.mqtt_sub_timeout)
+        
+        if not self.heard_from_client_event.is_set():
+             self.logger.warn("MQTT.server.await", "No clients found after timeout")
+
 
         self.logger.info("MQTT.server.await.timeout", "Waiting for clients timeout")
         self.logger.debug(
