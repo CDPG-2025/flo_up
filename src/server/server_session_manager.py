@@ -275,9 +275,18 @@ class FloSessionManager:
     async def start_session(self):
         self.logger.debug("session_id", str(self.id))
         self.mqtt_init_finish_event.wait()
-        await self.echo()
+        
+        # Wait for at least one client to be active
+        print(f"[FLOW] server_session_manager.py: Waiting for clients to join...")
+        while True:
+            await self.echo() # update status
+            active_clients = self.get_active_clients()
+            if len(active_clients) > 0:
+                print(f"[FLOW] server_session_manager.py: {len(active_clients)} Client(s) found! Starting session.")
+                break
+            print(f"[FLOW] server_session_manager.py: No active clients yet. Retrying in 2 seconds...")
+            await asyncio.sleep(2)
 
-        active_clients = self.get_active_clients()
         for client in active_clients:
             self.client_info.put(f"{client}.is_training", False)
         print(
