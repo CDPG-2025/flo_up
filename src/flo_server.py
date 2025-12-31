@@ -78,9 +78,10 @@ def execute_command():
     if session_running.is_set():
         print("[FLOW] flo_server.py: Session Already Running")
         return jsonify({"message": "A session is already running"}), 400
-    elif len(flo_server.get_active_clients()) == 0:
-        print("[FLOW] flo_server.py: No active clients")
-        return jsonify({"message": "No active clients"}), 400
+    # Removed check for active clients to allow dynamic joining
+    # elif len(flo_server.get_active_clients()) == 0:
+    #     print("[FLOW] flo_server.py: No active clients")
+    #     return jsonify({"message": "No active clients"}), 400
     elif data and "federated_learning_config" in data:
         print("[FLOW] flo_server.py: Processing federated_learning_config")
         session_config = data["federated_learning_config"]
