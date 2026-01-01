@@ -7,11 +7,12 @@ session_config:
   client_selection_args: []
   checkpoint_interval: 1
   generate_plots: True
+  validation_round_interval: 1
 
 benchmark_config:
   skip_benchmark: True
   model_id: FedAT_CNN
-  model_dir: model_cache
+  model_dir: ../models/FedAT_CNN
   model_class: FedAT_CNN
   dataset: CIFAR10_IID
   batch_size: 32
@@ -20,7 +21,7 @@ benchmark_config:
   timeout_duration_s: 60
 
 server_training_config:
-  model_dir: model_cache
+  model_dir: ../models/FedAT_CNN
   global_model_validation_batch_size: 32
   num_training_rounds: 5
   global_timeout_duration_s: 3600
@@ -34,9 +35,9 @@ client_training_config:
   learning_rate: 0.01
   train_timeout_duration_s: 600
   loss_function: crossentropy
-  loss_function_custom: False
+  loss_function_custom: True
   optimizer: sgd
-  optimizer_custom: False
+  optimizer_custom: True
 
 model_config:
   use_custom_dataloader: False
@@ -45,4 +46,5 @@ model_config:
   custom_trainer_args: {}
   use_custom_validator: False
   custom_validator_args: {}
-  model_args: {}
+  model_args:
+    num_classes: 10

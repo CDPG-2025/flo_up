@@ -9,7 +9,7 @@ venv/
 
 # Large files (models, zips)
 *.zip
-models/
+# models/
 *.h5
 *.pt
 *.tar

@@ -9,14 +9,13 @@ import yaml
 
 
 def client_selection(
-    logger_id: str,
-    client_list: list,
-    client_tiers,
-    round_no: int,
-    client_info,
-    training_state: dict = None,
-    client_session: dict = None,
-    global_model_metrics: dict = None,
+    selectable_clients: list,
+    session_id: str,
+    client_info: dict,
+    training_state: dict,
+    training_session: dict,
+    aggregate_state: dict,
+    client_selection_state: dict,
     args: dict = None,
 ):
-    return None, client_list
+    return selectable_clients, None
