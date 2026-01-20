@@ -1,4 +1,4 @@
-session_config:
+=session_config:
   session_id: facnn_fedavg_iid_docker
   use_gpu: False
   aggregator: fedavg 

@@ -404,10 +404,10 @@ def get_mnist():
     )
 
     trainset = torchvision.datasets.MNIST(
-        root="./data/", train=True, download=True, transform=transform
+        root="./data/mnist", train=True, download=True, transform=transform
     )
     testset = torchvision.datasets.MNIST(
-        root="./data/", train=False, download=True, transform=transform
+        root="./data/mnist", train=False, download=True, transform=transform
     )
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=len(trainset.data), shuffle=False

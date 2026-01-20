@@ -11,27 +11,27 @@ session_config:
 
 benchmark_config:
   skip_benchmark: True
-  model_id: FedAT_CNN
-  model_dir: ../models/FedAT_CNN
-  model_class: FedAT_CNN
-  dataset: CIFAR10_IID
+  model_id: AlexNet_class
+  model_dir: ../models/AlexNet_MNIST
+  model_class: AlexNet_class
+  dataset: MNIST_IID
   batch_size: 32
   learning_rate: 0.01
   bench_minibatch_count: 5
   timeout_duration_s: 60
 
 server_training_config:
-  model_dir: ../models/FedAT_CNN
+  model_dir: ../models/AlexNet_MNIST
   global_model_validation_batch_size: 32
   num_training_rounds: 5
   global_timeout_duration_s: 3600
 
 client_training_config:
-  model_id: FedAT_CNN
-  model_class: FedAT_CNN
-  epochs: 1
-  dataset: CIFAR10_IID
-  batch_size: 32
+  model_id: AlexNet_class
+  model_class: AlexNet_class
+  epochs: 5
+  dataset: MNIST_IID
+  batch_size: 64
   learning_rate: 0.01
   train_timeout_duration_s: 600
   loss_function: crossentropy

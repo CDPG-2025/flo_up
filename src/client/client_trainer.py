@@ -255,6 +255,7 @@ class ClientTrainer:
         results = dict()
 
         if self.use_custom_trainer:
+            print(f"{temp_dir_path},{model_id}")
             print("CLIIENT_TRAINER.train_model:: Using custom trainer")
             trainer = get_model_class(
                 path=self.temp_dir_path,
