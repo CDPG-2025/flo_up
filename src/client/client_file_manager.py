@@ -174,7 +174,7 @@ def get_model_class(path: str, model_id: str, class_name: str):
     and the name of the class that contains the PyTorch model as well as the train and the
     validation functions and returns an object to that class
     """
-
+    print("111111111111111111111111111111111")
     model_cache_dir_path = os.path.join(path, "model_cache")
     model_dir_path = os.path.join(model_cache_dir_path, model_id)
     if os.path.isdir(model_cache_dir_path):

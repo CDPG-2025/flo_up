@@ -23,7 +23,8 @@ class FedLogger(object):
             log_name: str = f"flotilla_{self.id}.log"
 
         os.makedirs(os.path.join(self.log_dir), exist_ok=True)
-        filepath = os.path.join(self.log_dir, log_name)
+        # Use forward slashes to avoid escape sequence issues on Windows
+        filepath = os.path.join(self.log_dir, log_name).replace("\\", "/")
         logging.config.fileConfig(
             fname=os.path.join("config", "logger.conf"),
             defaults={"logfilename": filepath},
@@ -36,7 +37,7 @@ class FedLogger(object):
             log_name: str = "flotilla_server.log"
         else:
             log_name: str = f"flotilla_{self.id}.log"
-        filepath = os.path.join(self.log_dir, log_name)
+        filepath = os.path.join(self.log_dir, log_name).replace("\\", "/")
         logging.config.fileConfig(
             fname=os.path.join("config", "logger.conf"),
             defaults={"logfilename": filepath},

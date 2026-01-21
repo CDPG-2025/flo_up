@@ -196,3 +196,4 @@ class EdgeService(object):
             grpc__pb2.InitValidationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
