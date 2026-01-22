@@ -149,6 +149,7 @@ class Client:
         dataset_path: str = self.dataset_paths[dataset_id]
 
         try:
+            print("55555555555555555555555555555555555")
             model_trainer = ClientTrainer(
                 temp_dir_path=self.temp_dir_path,
                 model_id=model_id,
