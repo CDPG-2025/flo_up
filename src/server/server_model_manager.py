@@ -88,13 +88,75 @@ class ServerModelManager:
         return self.loss_fun
 
     def test_dataset_loader(self, path: str, batch_size=50):
-        test_dataset = torch.load(path, weights_only=False).dataset
-        print("Length of test dataset", len(test_dataset))
+        print(f"[DEBUG] test_dataset_loader: Loading validation data from: {path}")
+        try:
+            loaded_obj = torch.load(path, weights_only=False)
+            print(f"[DEBUG] test_dataset_loader: Loaded object type: {type(loaded_obj)}")
+            
+            if hasattr(loaded_obj, 'dataset'):
+                test_dataset = loaded_obj.dataset
+                print(f"[DEBUG] test_dataset_loader: Using .dataset attribute")
+            else:
+                test_dataset = loaded_obj
+                print(f"[DEBUG] test_dataset_loader: Using loaded object directly")
+            
+            print(f"[DEBUG] test_dataset_loader: Dataset type: {type(test_dataset)}")
+            print(f"[DEBUG] test_dataset_loader: Length of test dataset: {len(test_dataset)}")
+            
+            # Check model's expected input channels
+            model_expects_grayscale = False
+            try:
+                # Check if model has a conv layer that expects 1 channel input
+                if hasattr(self.model, 'feature_extractor'):
+                    first_layer = self.model.feature_extractor[0]
+                    if hasattr(first_layer, 'in_channels') and first_layer.in_channels == 1:
+                        model_expects_grayscale = True
+                elif hasattr(self.model, 'conv1'):
+                    if hasattr(self.model.conv1, 'in_channels') and self.model.conv1.in_channels == 1:
+                        model_expects_grayscale = True
+                print(f"[DEBUG] test_dataset_loader: Model expects grayscale: {model_expects_grayscale}")
+            except Exception as e:
+                print(f"[DEBUG] test_dataset_loader: Could not determine model input channels: {e}")
+            
+            # Check first sample to see if we need grayscale conversion
+            sample_img, _ = test_dataset[0]
+            if hasattr(sample_img, 'shape'):
+                print(f"[DEBUG] test_dataset_loader: First sample shape: {sample_img.shape}")
+                # Only convert if image has 3 channels BUT model expects 1 channel
+                if len(sample_img.shape) == 3 and sample_img.shape[0] == 3 and model_expects_grayscale:
+                    print(f"[DEBUG] test_dataset_loader: Detected 3-channel images but model expects 1-channel, will convert to grayscale")
+                    
+                    # Wrap dataset to convert RGB to grayscale
+                    class GrayscaleDataset(torch.utils.data.Dataset):
+                        def __init__(self, dataset):
+                            self.dataset = dataset
+                            
+                        def __getitem__(self, idx):
+                            img, label = self.dataset[idx]
+                            # Convert RGB to grayscale by taking mean across channels
+                            if len(img.shape) == 3 and img.shape[0] == 3:
+                                img = img.mean(dim=0, keepdim=True)
+                            return img, label
+                        
+                        def __len__(self):
+                            return len(self.dataset)
+                    
+                    test_dataset = GrayscaleDataset(test_dataset)
+                    print(f"[DEBUG] test_dataset_loader: Wrapped dataset with grayscale converter")
+                else:
+                    print(f"[DEBUG] test_dataset_loader: No conversion needed - data has {sample_img.shape[0] if len(sample_img.shape) == 3 else 1} channels, model expects {'1' if model_expects_grayscale else '3'} channels")
 
-        data = torch.utils.data.DataLoader(
-            dataset=test_dataset, batch_size=batch_size, shuffle=True
-        )
-        return data
+
+            data = torch.utils.data.DataLoader(
+                dataset=test_dataset, batch_size=batch_size, shuffle=True
+            )
+            print(f"[DEBUG] test_dataset_loader: DataLoader created with {len(data)} batches")
+            return data
+        except Exception as e:
+            print(f"[ERROR] test_dataset_loader: Failed to load validation data: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     def validate_model(
         self,
@@ -119,33 +181,54 @@ class ServerModelManager:
             )
 
         else:
-            self.model = self.model.to(self.torch_device)
+            print(f"[DEBUG] Starting server-side validation for round {round_no}")
+            try:
+                self.model = self.model.to(self.torch_device)
+                self.model.eval()
+                print(f"[DEBUG] Model moved to {self.torch_device} and set to eval mode")
 
-            self.model.eval()
+                acc = 0
+                count = 0
+                total_loss = 0
+                batches = 0
+                
+                print(f"[DEBUG] Starting validation loop over {len(self.data)} batches")
+                with torch.no_grad():
+                    cost = self.loss_fun()
+                    for i, (x_batch, y_batch) in tqdm(
+                        enumerate(self.data), total=len(self.data), desc="Validation Round"
+                    ):
+                        if i == 0:
+                            print(f"[DEBUG] First batch - x_batch shape: {x_batch.shape}, y_batch shape: {y_batch.shape}")
+                        
+                        x_batch = x_batch.to(self.torch_device)
+                        y_batch = y_batch.to(self.torch_device)
+                        
+                        if i == 0:
+                            print(f"[DEBUG] Running forward pass on first batch...")
+                        y_pred = self.model(x_batch)
+                        
+                        if i == 0:
+                            print(f"[DEBUG] First batch prediction shape: {y_pred.shape}")
+                        
+                        loss = cost(y_pred, y_batch)
+                        total_loss += loss.item()
+                        acc += (torch.argmax(y_pred, 1) == y_batch).float().sum().item()
+                        count += len(y_batch)
+                        batches = i + 1
 
-            acc = 0
-            count = 0
-            total_loss = 0
-            batches = 0
-            with torch.no_grad():
-                cost = self.loss_fun()
-                for i, (x_batch, y_batch) in tqdm(
-                    enumerate(self.data), total=len(self.data), desc="Validation Round"
-                ):
-                    x_batch = x_batch.to(self.torch_device)
-                    y_batch = y_batch.to(self.torch_device)
-                    y_pred = self.model(x_batch)
-                    loss = cost(y_pred, y_batch)
-                    total_loss += loss.item()
-                    acc += (torch.argmax(y_pred, 1) == y_batch).float().sum().item()
-                    count += len(y_batch)
-                    batches = i + 1
+                print(f"[DEBUG] Validation loop completed. Processed {batches} batches, {count} samples")
+                acc = (acc / count) * 100
+                loss = total_loss / batches
 
-            acc = (acc / count) * 100
-            loss = total_loss / batches
-
-            self.model.train()
-            res = {"accuracy": acc, "loss": loss}
-            print(res)
+                self.model.train()
+                res = {"accuracy": acc, "loss": loss}
+                print(f"[VALIDATION RESULTS] Round {round_no}: Accuracy={acc:.2f}%, Loss={loss:.4f}")
+                print(res)
+            except Exception as e:
+                print(f"[ERROR] Validation failed: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
 
         return res

@@ -1,0 +1,50 @@
+session_config:
+  session_id: test_session_cifar
+  use_gpu: True
+  aggregator: fedavg
+  aggregator_args: []
+  client_selection: all_clients
+  client_selection_args: []
+  checkpoint_interval: 1
+  generate_plots: True
+  validation_round_interval: 1
+
+benchmark_config:
+  skip_benchmark: True
+  model_id: FedAT_CNN
+  model_dir: ../models/FedAT_CNN
+  model_class: FedAT_CNN
+  dataset: CIFAR10_IID
+  batch_size: 32
+  learning_rate: 0.001
+  bench_minibatch_count: 5
+  timeout_duration_s: 3600
+
+server_training_config:
+  model_dir: ../models/FedAT_CNN
+  global_model_validation_batch_size: 32
+  num_training_rounds: 5
+  global_timeout_duration_s: 3600
+
+client_training_config:
+  model_id: FedAT_CNN
+  model_class: FedAT_CNN
+  epochs: 3
+  dataset: CIFAR10_IID
+  batch_size: 32
+  learning_rate: 0.001
+  train_timeout_duration_s: 3600
+  loss_function: crossentropy
+  loss_function_custom: True
+  optimizer: sgd
+  optimizer_custom: True
+
+model_config:
+  use_custom_dataloader: False
+  custom_loader_args: {}
+  use_custom_trainer: False
+  custom_trainer_args: {}
+  use_custom_validator: False
+  custom_validator_args: {}
+  model_args:
+    num_classes: 10

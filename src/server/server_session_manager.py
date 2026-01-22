@@ -178,7 +178,7 @@ class FloSessionManager:
             model_dir=self.train_config["model_dir"],
             model_class=self.train_config["model_class"],
             batch_size=self.train_config["global_model_validation_batch_size"],
-            val_data_path=self.dataset_available[self.train_config["dataset"]][
+            val_data_path=self.dataset_available[session_config["server_training_config"]["validation_dataset"]][
                 "dataset_details"
             ]["data_filename"],
             use_custom_dataloader=self.model_config["use_custom_dataloader"],

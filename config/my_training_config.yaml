@@ -18,7 +18,7 @@ benchmark_config:
   batch_size: 32
   learning_rate: 0.01
   bench_minibatch_count: 5
-  timeout_duration_s: 60
+  timeout_duration_s: 3600
 
 server_training_config:
   model_dir: ../models/AlexNet_MNIST
@@ -33,7 +33,7 @@ client_training_config:
   dataset: MNIST_IID
   batch_size: 64
   learning_rate: 0.01
-  train_timeout_duration_s: 600
+  train_timeout_duration_s: 3600
   loss_function: crossentropy
   loss_function_custom: True
   optimizer: sgd

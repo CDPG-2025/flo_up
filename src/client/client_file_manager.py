@@ -207,8 +207,11 @@ def get_model_class(path: str, model_id: str, class_name: str):
         )
         return None
 
+    
     print(f"\nclient_file_manager.get_model_class:: {model_dir_path} not found\n")
+    print("222222222222222222222222222222222")
     return None
+
 
 
 def read_yaml(path: str):
